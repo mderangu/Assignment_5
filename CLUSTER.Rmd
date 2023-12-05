@@ -1,0 +1,93 @@
+---
+title: "Mderangu"
+output: html_document
+date: "2023-12-04"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r}
+#Loading the required packages and reading the cereals file.
+
+library(factoextra)
+library(dendextend)
+library(cluster)
+library(tidyverse)
+cereals <- read_csv("C:/Users/Vamshi/OneDrive/Desktop/Cereals.csv")
+View(cereals)
+numericaldata = data.frame(cereals[,4:16])
+spec(cereals)
+
+#Data prepocessing - Normalize the measurements to ensure that variables with different scales do not disproportionately influence the clustering.
+missing = na.omit(numericaldata)
+
+#normalizing and scaling the data
+normalise = scale(missing)
+
+#measuring the distance using the euclidian distance and computing the dissimilarity matrix
+distance = dist(normalise, method = "euclidian")
+
+#Hierarchical clustering is a method of cluster analysis which seeks to build a hierarchy of clusters.performing hierarchial clustering using complete linkage and representing in plot.Hierarchical clustering can be divided into two main types: agglomerative and divisive.
+hierarchial_clustering = hclust(distance,method = "complete")
+plot(hierarchial_clustering)
+
+#rounding off the decimals
+round(hierarchial_clustering$height, 5)
+
+#Look at the dendrogram plot and observe where the blue rectangles are drawn. Each rectangle corresponds to a cluster, and the number of rectangles indicates the specified number of clusters (in this case, 5).
+
+plot(hierarchial_clustering)
+rect.hclust(hierarchial_clustering,k = 5, border = "blue")
+
+#The agnes function in R is part of the cluster package, and it is used to perform agglomerative hierarchical clustering. Agglomerative hierarchical clustering is a bottom-up approach where individual data points start as their own clusters and are successively merged based on their pairwise similarity until a single cluster containing all the data points is formed.
+
+# Data matrix, data frame, or dissimilarity matrix      
+# Metric for calculating dissimilarities: "euclidean" or "manhattan"  
+# Standardize measurements if TRUE
+# Clustering method: "average", "single", "complete", "ward"
+
+
+#performing clustering using AGNES
+HCsingle = agnes(normalise, method = "single")
+HCcomplete = agnes(normalise, method = "complete")
+HCaverage = agnes(normalise, method = "average")
+HCward = agnes(normalise, method = "ward")
+
+#performing clustering using AGNES
+HCsingle = agnes(normalise, method = "single")
+HCcomplete = agnes(normalise, method = "complete")
+HCaverage = agnes(normalise, method = "average")
+HCward = agnes(normalise, method = "ward")
+
+#using the ward method for hierarchial clustering and Ward's method minimizes the variance within each cluster. It selects the pair of clusters to merge such that the increase in the total within-cluster variance is minimized.
+HC1 <- hclust(distance, method = "ward.D2" )
+subgrp <- cutree(HC1, k = 4)
+table(subgrp)
+cereals <- as.data.frame(cbind(normalise,subgrp))
+
+#It is used for visualizing clustering results obtained from various clustering algorithms. visualising the results on scatterplot
+fviz_cluster(list(data = normalise, cluster = subgrp))
+
+#choosing the healthy cereal cluster
+data <- cereals
+data_omit <- na.omit(data)
+Clust <- cbind(data_omit, subgrp)
+Clust[Clust$subgrp==1,]
+Clust[Clust$subgrp==2,]
+Clust[Clust$subgrp==3,]
+Clust[Clust$subgrp==4,]
+
+#here we calculate the mean rating in order determine the healthy cluster cereals
+mean(Clust[Clust$subgrp==1,"rating"])
+mean(Clust[Clust$subgrp==2,"rating"])
+mean(Clust[Clust$subgrp==3,"rating"])
+mean(Clust[Clust$subgrp==4,"rating"])
+
+
+
+
+```
+
